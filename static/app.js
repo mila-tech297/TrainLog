@@ -1,5 +1,6 @@
 'use strict';
 let state = { workouts: [], goal: null };
+let localMode = false;
 const $ = (selector) => document.querySelector(selector);
 const format = (value, digits = 1) => Number(value).toLocaleString('nl-NL', { maximumFractionDigits: digits });
 const prettyDate = (value) => new Date(value + 'T12:00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
@@ -13,6 +14,7 @@ function toast(text) {
 }
 
 async function api(path, body) {
+  if (localMode) return localApi(path, body);
   const options = body === undefined ? {} : {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Trainlog-Token': state.token },
     body: JSON.stringify(body)
@@ -23,6 +25,45 @@ async function api(path, body) {
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Er ging iets mis. Probeer opnieuw.');
   return result;
+}
+
+function localState() {
+  const saved = JSON.parse(localStorage.getItem('trainlog-state') || 'null');
+  return saved || { workouts: [], goal: null, ai_available: false, token: 'local', today: new Date().toISOString().slice(0, 10) };
+}
+function saveLocal(next) {
+  next.today = state.today || new Date().toISOString().slice(0, 10);
+  localStorage.setItem('trainlog-state', JSON.stringify(next));
+  return next;
+}
+async function localApi(path, body) {
+  const next = localState();
+  if (path === '/api/state') return next;
+  if (path === '/api/workouts') {
+    const distance = Number(String(body.distance).replace(',', '.'));
+    const duration = Number(String(body.duration).replace(',', '.'));
+    if (!body.date || !Number.isFinite(distance) || distance <= 0 || !Number.isFinite(duration) || duration <= 0) throw new Error('Vul een geldige datum, afstand en duur in.');
+    next.workouts.unshift({ id: Date.now(), date: body.date, distance, duration, note: String(body.note || '').slice(0, 500) });
+    return saveLocal(next);
+  }
+  if (path === '/api/workouts/delete') {
+    next.workouts = next.workouts.filter(workout => workout.id !== body.id);
+    return saveLocal(next);
+  }
+  if (path === '/api/goal') {
+    const distance = Number(String(body.distance).replace(',', '.'));
+    if (!Number.isFinite(distance) || distance <= 0 || !body.deadline) throw new Error('Vul een geldige afstand en doeldatum in.');
+    next.goal = { id: 1, distance, deadline: body.deadline };
+    return saveLocal(next);
+  }
+  if (path === '/api/summary') {
+    const workouts = next.workouts;
+    if (!workouts.length) throw new Error('Sla eerst een training op.');
+    const total = workouts.reduce((sum, workout) => sum + Number(workout.distance), 0);
+    const minutes = workouts.reduce((sum, workout) => sum + Number(workout.duration), 0);
+    return { source: 'Berekend overzicht · browsermodus', text: `Je hebt ${workouts.length} training${workouts.length === 1 ? '' : 'en'} opgeslagen: ${format(total)} km in ${format(minutes)} minuten. In Vercel worden deze gegevens alleen in deze browser bewaard.` };
+  }
+  throw new Error('Onbekende actie.');
 }
 
 function weekWorkouts() {
@@ -194,6 +235,10 @@ $('#summary-basic').addEventListener('click', () => summary(false));
 $('#summary-ai').addEventListener('click', () => summary(true));
 window.addEventListener('hashchange', navigate);
 navigate();
-api('/api/state').then(result => { state = result; render(); }).catch(error => {
-  $('#connection-error').textContent = error.message; $('#connection-error').hidden = false;
+api('/api/state').then(result => { state = result; render(); }).catch(async () => {
+  localMode = true;
+  state = localState();
+  render();
+  $('#ai-status').textContent = 'Browsermodus: gegevens worden alleen in deze browser bewaard.';
+  toast('Vercel-modus actief. Je gegevens blijven in deze browser bewaard.');
 });

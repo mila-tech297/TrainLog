@@ -2,6 +2,8 @@
 
 Een mobiele webapp met een Python-server en een SQLite-database. Je houdt hardlooptrainingen bij, kiest een afstandsdoel voor één training en ziet je voortgang in een grafiek. De app begint leeg: er staan geen verzonnen trainingen in.
 
+De app kan ook op Vercel als browsermodus draaien. Daar worden trainingen in `localStorage` van die browser bewaard. Voor gedeelde accounts, echte SQLite-opslag en AI gebruik je de Python-server lokaal.
+
 ## Starten
 
 **Makkelijk op je pc:** dubbelklik in Windows Verkenner op **Start TrainLog.bat**. De Python-server start en de app opent automatisch in je standaardbrowser. Laat het terminalvenster open zolang je de app gebruikt. Sluit het venster om de server te stoppen. Je kunt ook met de rechtermuisknop op het bestand een snelkoppeling maken voor je bureaublad.
