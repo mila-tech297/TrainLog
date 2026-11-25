@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123c2b">
+  <meta name="description" content="Jouw hardlooptrainingen, doelen en vooruitgang op één plek.">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/style.css">
+  <title>TrainLog · Jouw volgende stap</title>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a href="#overzicht" class="brand"><span class="brand-mark">↗</span> TrainLog<span class="brand-dot">.</span></a>
+    <div class="sidebar-caption">JOUW PERSOONLIJKE TRAININGSBOEK</div>
+    <nav aria-label="Hoofdnavigatie">
+      <a class="nav-link active" href="#overzicht"><span>◫</span> Overzicht</a>
+      <a class="nav-link" href="#trainingen"><span>≋</span> Mijn trainingen</a>
+      <a class="nav-link" href="#doel"><span>◎</span> Mijn doel</a>
+    </nav>
+    <div class="sidebar-bottom"><span class="sport-dot"></span> Hardlopen <small>Eén stap tegelijk.</small></div>
+  </aside>
+  <main>
+    <header class="topbar"><span>MIJN TRAININGSRUIMTE</span><span id="today-label"></span></header>
+    <div class="page-heading"><div><p class="eyebrow">BLIJF IN BEWEGING</p><h1>Jouw volgende stap.</h1><p class="muted">Elke training telt. Kijk hoe ver je al bent.</p></div><button class="primary" id="add-workout">＋ Training toevoegen</button></div>
+    <div id="connection-error" class="error-banner" role="alert" hidden></div>
+    <section id="overzicht" class="view">
+      <div class="stats-grid">
+        <article class="stat-card"><span class="stat-label">Afstand deze week <span>↗</span></span><div><strong id="week-distance">0</strong> <span>km</span></div><small>Afgelopen 7 dagen</small></article>
+        <article class="stat-card"><span class="stat-label">Trainingen deze week <span>≋</span></span><div><strong id="week-count">0</strong> <span>trainingen</span></div><small>Iedere keer is er één</small></article>
+        <article class="stat-card"><span class="stat-label">Tijd in beweging <span>◷</span></span><div><strong id="week-duration">0</strong> <span>min</span></div><small>Afgelopen 7 dagen</small></article>
+      </div>
+      <div class="dashboard-grid">
+        <article class="card chart-card"><div class="card-heading"><div><p class="eyebrow">STAP VOOR STAP</p><h2>Je vooruitgang</h2></div><span class="pill">Afstand · km</span></div><div id="chart" class="chart"></div><p class="chart-caption"><span class="legend-line"></span> Afstand per training <span class="legend-goal"></span> Je doel</p></article>
+        <article class="goal-card"><p class="eyebrow">JOUW STIP OP DE HORIZON</p><h2>Een doel om voor te gaan.</h2><div class="goal-number"><span id="goal-number">—</span> <small>km</small></div><p id="goal-description">Geef je volgende mijlpaal een plek.</p><div class="progress-track"><div id="goal-progress"></div></div><p id="goal-progress-label" class="goal-progress-label">Stel je eerste afstandsdoel in</p><button id="edit-goal" class="light-button">Doel instellen ↗</button></article>
+      </div>
+      <div class="dashboard-grid bottom-grid">
+        <article class="card"><div class="card-heading"><div><p class="eyebrow">GOED GEDAAN</p><h2>Laatste trainingen</h2></div><a href="#trainingen" class="text-link">Bekijk alles ↗</a></div><div id="recent-workouts"></div></article>
+        <article class="card summary-card"><span class="ai-badge">✦ JOUW WEEK IN WOORDEN</span><h2>Even terugkijken.</h2><p class="muted">Maak van je cijfers een helder overzicht van de afgelopen zeven dagen.</p><div id="summary-output" class="summary-output" aria-live="polite">Je weekoverzicht verschijnt hier zodra je het opvraagt.</div><div class="summary-actions"><button id="summary-basic" class="secondary">Weekoverzicht</button><button id="summary-ai" class="primary">✦ Met AI</button></div><small id="ai-status">AI-status wordt geladen…</small><p class="privacy-note">Met de AI-knop stuur je weektotalen en je doel naar OpenAI. Je notities worden niet meegestuurd.</p></article>
+      </div>
+    </section>
+    <section id="trainingen" class="view" hidden><article class="card"><div class="card-heading"><div><p class="eyebrow">JOUW INZET, VASTGELEGD</p><h2>Mijn trainingen</h2></div><span id="total-count" class="pill"></span></div><div id="all-workouts"></div></article></section>
+    <section id="doel" class="view" hidden><article class="card goal-detail"><p class="eyebrow">MAAK HET CONCREET</p><h2>Jouw volgende mijlpaal</h2><p>Hoeveel kilometer wil je in één training kunnen lopen? Je langste opgeslagen training bepaalt je voortgang.</p><form id="goal-form"><label>Afstand (km)<input name="distance" type="number" min="0.1" max="1000" step="0.1" placeholder="Bijvoorbeeld 5" required></label><label>Doeldatum<input name="deadline" type="date" required></label><button class="primary" type="submit">Doel opslaan ↗</button><p class="form-message" role="status"></p></form></article></section>
+    <footer>TRAINLOG <span>Een beetje verder dan gisteren.</span></footer>
+  </main>
+  <dialog id="workout-dialog"><form id="workout-form"><div class="dialog-heading"><div><p class="eyebrow">TIJD OM HET VAST TE LEGGEN</p><h2>Nieuwe training</h2></div><button type="button" id="close-dialog" class="icon-button" aria-label="Sluiten">×</button></div><p class="muted">Hardlopen · jouw moment in beweging</p><label>Datum<input name="date" type="date" required></label><div class="form-columns"><label>Afstand (km)<input name="distance" type="number" step="0.01" min="0.01" max="1000" placeholder="5,00" required></label><label>Duur (minuten)<input name="duration" type="number" step="0.1" min="0.1" max="10080" placeholder="30" required></label></div><label>Notitie <span class="optional">optioneel</span><textarea name="note" maxlength="500" rows="3" placeholder="Hoe ging het vandaag?"></textarea></label><p class="form-message" role="status"></p><button class="primary full-width" type="submit">Training opslaan ↗</button></form></dialog>
+  <div id="toast" role="status" hidden></div>
+</body>
+</html>
